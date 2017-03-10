@@ -22,6 +22,7 @@
 #import "RNPPhoto.h"
 #import "RNPContacts.h"
 #import "RNPBackgroundRefresh.h"
+#import "RNPSpeechRecognition.h"
 
 @interface ReactNativePermissions()
 @property (strong, nonatomic) RNPLocation *locationMgr;
@@ -66,15 +67,17 @@ RCT_EXPORT_METHOD(openSettings)
     }
 }
 
-RCT_REMAP_METHOD(getPermissionStatus, getPermissionStatus:(RNPType)type resolve:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+RCT_REMAP_METHOD(getPermissionStatus, getPermissionStatus:(RNPType)type json:(id)json resolve:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
     NSString *status;
     
     switch (type) {
             
-        case RNPTypeLocation:
-            status = [RNPLocation getStatus];
+        case RNPTypeLocation: {
+            NSString *locationPermissionType = [RCTConvert NSString:json];
+            status = [RNPLocation getStatusForType:locationPermissionType];
             break;
+        }
         case RNPTypeCamera:
             status = [RNPAudioVideo getStatus:@"video"];
             break;
@@ -101,6 +104,9 @@ RCT_REMAP_METHOD(getPermissionStatus, getPermissionStatus:(RNPType)type resolve:
             break;
         case RNPTypeBackgroundRefresh:
             status = [RNPBackgroundRefresh getStatus];
+            break;
+        case RNPTypeSpeechRecognition:
+            status = [RNPSpeechRecognition getStatus];
             break;
         default:
             break;
@@ -132,13 +138,14 @@ RCT_REMAP_METHOD(requestPermission, permissionType:(RNPType)type json:(id)json r
             return [self requestBluetooth:resolve];
         case RNPTypeNotification:
             return [self requestNotification:json resolve:resolve];
+        case RNPTypeSpeechRecognition:
+            return [RNPSpeechRecognition request:resolve];
         default:
             break;
     }
     
 
 }
-
 
 - (void) requestLocation:(id)json resolve:(RCTPromiseResolveBlock)resolve
 {
